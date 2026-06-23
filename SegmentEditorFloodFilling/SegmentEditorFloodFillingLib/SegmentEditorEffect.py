@@ -252,5 +252,16 @@ Masking settings can be used to restrict growing to a specific region.
     floodFillingFilter.Update()
     modifierLabelmap.DeepCopy(floodFillingFilter.GetOutput())
 
+    # cast the float data to unsigned char so that a closed surface representation can be generated, will be no op if already correct data type
+    castFilter = vtk.vtkImageCast()
+    castFilter.SetInputData(modifierLabelmap)
+    castFilter.SetOutputScalarTypeToUnsignedChar()
+    castFilter.ClampOverflowOn()
+    castFilter.Update()
+
+    modifierLabelmapCast = vtkSegmentationCore.vtkOrientedImageData()
+    modifierLabelmapCast.DeepCopy(castFilter.GetOutput())
+    modifierLabelmapCast.CopyDirections(modifierLabelmap)
+
     # Apply changes
-    self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmap, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeAdd)
+    self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmapCast, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeAdd)
